@@ -1,5 +1,5 @@
 module Oja
-  module Settlement
+  class Settlement
     class Reconcile
       SUCCESS_EVENTS = %w[transfer.success settlement.success].freeze
       FAILURE_EVENTS = %w[transfer.failed settlement.failed].freeze
