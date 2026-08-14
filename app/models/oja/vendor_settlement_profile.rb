@@ -4,6 +4,11 @@ module Oja
 
     STRATEGIES = %w[instant threshold_batched].freeze
 
+    has_many :order_allocations,
+             class_name: "Oja::OrderAllocation",
+             foreign_key: :settlement_profile_id,
+             dependent: :restrict_with_exception
+
     enum :settlement_strategy, {
       instant: "instant",
       threshold_batched: "threshold_batched"
