@@ -1,5 +1,5 @@
 module Oja
-  module Settlement
+  class Settlement
     module Providers
       class Base
         def create_payout(settlement:)
