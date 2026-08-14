@@ -7,9 +7,8 @@ module Oja
           raise ArgumentError, "no OJA allocation reservations for order" if allocations.empty?
 
           allocations.each_with_index do |order_allocation, index|
-            reservation = order_allocation.reservation
             Oja::Allocations::Consume.call(
-              reservation: reservation,
+              reservation: order_allocation.reservation,
               idempotency_key: "#{idempotency_key}:#{index}"
             )
           end
