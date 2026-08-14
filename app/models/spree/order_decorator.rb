@@ -15,4 +15,4 @@ module Spree
   end
 end
 
-Spree::Order.prepend(Spree::OrderDecorator)
+Spree::Order.prepend(Spree::OrderDecorator) unless Spree::Order < Spree::OrderDecorator
