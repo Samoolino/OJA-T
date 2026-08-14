@@ -2,6 +2,8 @@ module Oja
   module Fulfillment
     class ConfirmDelivery
       def self.call(fulfillment:, confirmation_reference:)
+        return fulfillment if fulfillment.delivered?
+
         ApplicationRecord.transaction do
           fulfillment.with_lock do
             return fulfillment if fulfillment.delivered?
