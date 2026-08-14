@@ -1,0 +1,44 @@
+name: OJA-T CI
+
+on:
+  push:
+    branches: [ main, feature/oja-core-actual ]
+  pull_request:
+
+jobs:
+  rspec:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: oja_t_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d oja_t_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      RAILS_ENV: test
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - name: Install Spree engine migrations
+        run: |
+          bundle exec rake spree:install:migrations
+          baseline="$(find db/migrate -maxdepth 1 -type f -name '*_spree_four_three.spree.rb' -print -quit)"
+          test -n "$baseline"
+          mv "$baseline" db/migrate/20260813990000_spree_four_three.spree.rb
+      - run: bundle exec rake db:prepare
+      - run: bundle exec rspec
