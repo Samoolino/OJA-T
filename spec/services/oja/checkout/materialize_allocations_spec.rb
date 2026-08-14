@@ -1,4 +1,4 @@
-require "spec_helper"
+require "rails_helper"
 
 RSpec.describe Oja::Checkout::MaterializeAllocations do
   it "creates order-allocation lineage for a reservation and vendor" do
