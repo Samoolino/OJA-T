@@ -1,5 +1,5 @@
 module Oja
-  module Settlement
+  class Settlement
     class Eligibility
       def self.call(settlement:, payment_confirmed:, fulfillment_complete:, delivery_confirmed:)
         new(
