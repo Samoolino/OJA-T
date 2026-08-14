@@ -1,5 +1,5 @@
 module Oja
-  module Settlement
+  class Settlement
     class Create
       def self.call(order_allocation:, vendor_reference:, gross_amount:, currency:, profile:)
         platform_fee = (gross_amount.to_d * profile.commission_rate.to_d / 100).round(2)
