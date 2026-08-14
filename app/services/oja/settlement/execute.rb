@@ -1,11 +1,11 @@
 module Oja
   module Settlement
     class Execute
-      def self.call(settlement:, transfer_gateway:)
+      def self.call(settlement:, transfer_gateway: Oja::Settlement::TransferGateway)
         ApplicationRecord.transaction do
           settlement.with_lock do
             return settlement if settlement.paid? || settlement.authorized?
-            raise ArgumentError, "settlement is not payable" unless settlement.payable? || settlement.pending?
+            raise ArgumentError, "settlement is not payable" unless settlement.payable?
 
             transfer = transfer_gateway.initiate(
               amount: settlement.net_amount,
