@@ -3,7 +3,6 @@ require_relative "boot"
 require "rails/all"
 require "spree_core"
 require "spree_api"
-require "spree_backend"
 
 Bundler.require(*Rails.groups)
 
