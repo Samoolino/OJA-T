@@ -1,31 +1,27 @@
 module Api
   module V1
     class WebhooksController < ActionController::API
-      def payment
+      def stripe
         raw_payload = request.raw_post
-        Oja::Webhooks::VerifySignature.call(
+        signature = request.headers["Stripe-Signature"]
+        event = Oja::Payment::StripeClient.new.verify_webhook(
           payload: raw_payload,
-          signature: request.headers["X-OJA-Signature"]
+          signature: signature
         )
 
-        payload = JSON.parse(raw_payload)
-        event = Oja::WebhookEvent.create_or_find_by!(event_id: payload.fetch("event_id")) do |record|
-          record.provider = payload.fetch("provider")
-          record.event_type = payload.fetch("event_type")
-          record.external_reference = payload.fetch("external_reference")
-          record.payload = payload
-        end
+        stripe_payment_intent_id = event.data.object.id
 
-        unless event.processed_at
-          Oja::Settlement::Reconcile.call(
-            external_reference: event.external_reference,
-            event_type: event.event_type
-          )
-          event.update!(processed_at: Time.current)
-        end
+        Oja::Payment::ReconcileWebhook.call(
+          provider: "stripe",
+          event: {
+            id: event.id,
+            type: event.type,
+            external_reference: stripe_payment_intent_id
+          }
+        )
 
         head :ok
-      rescue JSON::ParserError, KeyError, ArgumentError, ActiveRecord::RecordInvalid => e
+      rescue ::Stripe::SignatureVerificationError, JSON::ParserError, KeyError, ArgumentError, ActiveRecord::RecordInvalid => e
         render json: { error: e.message }, status: :unprocessable_entity
       end
     end
