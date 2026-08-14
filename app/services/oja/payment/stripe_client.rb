@@ -1,7 +1,7 @@
 module Oja
   module Payment
     class StripeClient
-      def initialize(secret_key: ENV.fetch("STRIPE_SECRET_KEY"))
+      def initialize(secret_key: nil)
         @secret_key = secret_key
       end
 
@@ -12,7 +12,8 @@ module Oja
             currency: currency,
             metadata: metadata
           },
-          { idempotency_key: idempotency_key }
+          { idempotency_key: idempotency_key },
+          api_key: @secret_key || ENV.fetch("STRIPE_SECRET_KEY")
         )
 
         {
