@@ -10,7 +10,7 @@ module Oja
 
         ApplicationRecord.transaction do
           payment_intent.with_lock do
-            return order if payment_intent.completed?
+            return order if payment_intent.succeeded?
 
             payment_intent.update!(order_id: order.id, idempotency_key: idempotency_key)
             Oja::Checkout::Complete.call(order: order, idempotency_key: idempotency_key)
