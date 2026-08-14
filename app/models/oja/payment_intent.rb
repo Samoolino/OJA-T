@@ -5,6 +5,8 @@ module Oja
     FUNDING_SOURCES = %w[plan_allocation transfer card external_payment].freeze
     AUTHORIZATION_METHODS = %w[biometric_p256 qr_scan device_confirmation coupon payment_link manual].freeze
 
+    belongs_to :order, class_name: "Spree::Order", optional: true
+
     enum :status, {
       pending: "pending",
       requires_authorization: "requires_authorization",
@@ -23,6 +25,7 @@ module Oja
     validates :authorization_method, inclusion: { in: AUTHORIZATION_METHODS }
     validates :nonce, presence: true, uniqueness: true
     validates :expires_at, presence: true
+    validates :idempotency_key, uniqueness: true, allow_nil: true
 
     def expired_at?(time = Time.current)
       expires_at <= time
