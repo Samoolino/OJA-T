@@ -9,19 +9,21 @@ RSpec.describe "OJA end-to-end transaction lifecycle" do
     allocation_b = instance_double(Oja::PlanAllocation, id: 12, currency: "NGN")
     reservation_a = instance_double(Oja::AllocationReservation, allocation_id: 11, active?: true, amount: 60_000.to_d, consumed?: false)
     reservation_b = instance_double(Oja::AllocationReservation, allocation_id: 12, active?: true, amount: 40_000.to_d, consumed?: false)
-    profile_a = instance_double(Oja::VendorSettlementProfile, currency: "NGN", fulfillment_mode: "courier")
-    profile_b = instance_double(Oja::VendorSettlementProfile, currency: "NGN", fulfillment_mode: "courier")
+    settlement_profile_a = instance_double(Oja::VendorSettlementProfile, currency: "NGN")
+    settlement_profile_b = instance_double(Oja::VendorSettlementProfile, currency: "NGN")
+    fulfillment_profile_a = instance_double(Oja::VendorFulfillmentProfile, fulfillment_mode: "courier")
+    fulfillment_profile_b = instance_double(Oja::VendorFulfillmentProfile, fulfillment_mode: "courier")
 
     order_allocation_a = instance_double(Oja::OrderAllocation,
       order_id: 501, reservation: reservation_a, amount: 60_000.to_d, currency: "NGN",
-      vendor_reference: "vendor-a", settlement_profile: profile_a)
+      vendor_reference: "vendor-a", settlement_profile: settlement_profile_a)
     order_allocation_b = instance_double(Oja::OrderAllocation,
       order_id: 501, reservation: reservation_b, amount: 40_000.to_d, currency: "NGN",
-      vendor_reference: "vendor-b", settlement_profile: profile_b)
+      vendor_reference: "vendor-b", settlement_profile: settlement_profile_b)
 
     parts = [
-      { allocation: allocation_a, reservation: reservation_a, amount: 60_000, vendor_reference: "vendor-a", settlement_profile: profile_a },
-      { allocation: allocation_b, reservation: reservation_b, amount: 40_000, vendor_reference: "vendor-b", settlement_profile: profile_b }
+      { allocation: allocation_a, reservation: reservation_a, amount: 60_000, vendor_reference: "vendor-a", settlement_profile: settlement_profile_a },
+      { allocation: allocation_b, reservation: reservation_b, amount: 40_000, vendor_reference: "vendor-b", settlement_profile: settlement_profile_b }
     ]
 
     allow(ApplicationRecord).to receive(:transaction).and_yield
@@ -34,8 +36,8 @@ RSpec.describe "OJA end-to-end transaction lifecycle" do
 
     expect(Oja::Allocations::Consume).to receive(:call).with(reservation: reservation_a, idempotency_key: "checkout-1:0")
     expect(Oja::Allocations::Consume).to receive(:call).with(reservation: reservation_b, idempotency_key: "checkout-1:1")
-    expect(Oja::Settlement::Create).to receive(:call).with(order_allocation: order_allocation_a, vendor_reference: "vendor-a", gross_amount: 60_000.to_d, currency: "NGN", profile: profile_a)
-    expect(Oja::Settlement::Create).to receive(:call).with(order_allocation: order_allocation_b, vendor_reference: "vendor-b", gross_amount: 40_000.to_d, currency: "NGN", profile: profile_b)
+    expect(Oja::Settlement::Create).to receive(:call).with(order_allocation: order_allocation_a, vendor_reference: "vendor-a", gross_amount: 60_000.to_d, currency: "NGN", profile: settlement_profile_a)
+    expect(Oja::Settlement::Create).to receive(:call).with(order_allocation: order_allocation_b, vendor_reference: "vendor-b", gross_amount: 40_000.to_d, currency: "NGN", profile: settlement_profile_b)
 
     Oja::Checkout::Complete.call(
       order: order,
@@ -54,8 +56,8 @@ RSpec.describe "OJA end-to-end transaction lifecycle" do
     allow(fulfillment_b).to receive(:idempotency_key=)
 
     allow(Oja::OrderAllocation).to receive(:where).with(order_id: 501).and_return([order_allocation_a, order_allocation_b])
-    allow(Oja::VendorFulfillmentProfile).to receive(:find_by).with(vendor_reference: "vendor-a").and_return(profile_a)
-    allow(Oja::VendorFulfillmentProfile).to receive(:find_by).with(vendor_reference: "vendor-b").and_return(profile_b)
+    allow(Oja::VendorFulfillmentProfile).to receive(:find_by).with(vendor_reference: "vendor-a").and_return(fulfillment_profile_a)
+    allow(Oja::VendorFulfillmentProfile).to receive(:find_by).with(vendor_reference: "vendor-b").and_return(fulfillment_profile_b)
     expect(Oja::OrderFulfillment).to receive(:create_or_find_by!).with(order_id: 501, vendor_reference: "vendor-a").and_yield(fulfillment_a).and_return(fulfillment_a)
     expect(Oja::OrderFulfillment).to receive(:create_or_find_by!).with(order_id: 501, vendor_reference: "vendor-b").and_yield(fulfillment_b).and_return(fulfillment_b)
 
@@ -74,7 +76,7 @@ RSpec.describe "OJA end-to-end transaction lifecycle" do
     allow(Oja::VendorSettlement).to receive(:where).with(order_allocation_id: [101], status: :pending).and_return(settlement_relation)
     allow(settlement_relation).to receive(:find_each).and_yield(settlement_a)
     allow(settlement_a).to receive(:update!).with(status: :payable)
-    expect(Oja::Settlement::Route).to receive(:call).with(settlement: settlement_a, profile: profile_a)
+    expect(Oja::Settlement::Route).to receive(:call).with(settlement: settlement_a, profile: settlement_profile_a)
 
     Oja::Fulfillment::ConfirmDelivery.call(fulfillment: fulfillment_a, confirmation_reference: "DEL-501-A")
 
