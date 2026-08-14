@@ -2,7 +2,7 @@ module Oja
   class Settlement
     module Providers
       class Base
-        def create_payout(settlement:, connected_account_id:)
+        def create_payout(settlement:, connected_account_id: nil)
           raise NotImplementedError
         end
 
