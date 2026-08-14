@@ -4,7 +4,7 @@ RSpec.describe Oja::PlanAllocation do
   it "does not double count an active reservation recorded in the ledger" do
     allocation = described_class.allocate
     ledger = instance_double(ActiveRecord::Associations::CollectionProxy)
-    reservations = instance_double(ActiveRecord::Associations::CollectionProxy)
+    reservations = double("ReservationsScope")
 
     allow(allocation).to receive(:ledger_entries).and_return(ledger)
     allow(allocation).to receive(:reservations).and_return(reservations)
