@@ -2,6 +2,7 @@ module Oja
   class OrderAllocation < ApplicationRecord
     self.table_name = "oja_order_allocations"
 
+    belongs_to :order, class_name: "Spree::Order"
     belongs_to :allocation, class_name: "Oja::PlanAllocation"
     belongs_to :reservation, class_name: "Oja::AllocationReservation"
     belongs_to :settlement_profile, class_name: "Oja::VendorSettlementProfile"
