@@ -10,7 +10,7 @@ RSpec.describe Oja::Settlement::ConditionalBatch do
   let(:gateway) { class_double(Oja::Settlement::TransferGateway) }
 
   it "does not transfer when the vendor has not reached the threshold" do
-    low = instance_double(Oja::VendorSettlement, net_amount: 25_000.to_d)
+    low = instance_double(Oja::VendorSettlement, id: 1, net_amount: 25_000.to_d)
     scope = class_double(Oja::VendorSettlement)
     allow(scope).to receive(:where).and_return([low])
 
@@ -19,8 +19,8 @@ RSpec.describe Oja::Settlement::ConditionalBatch do
   end
 
   it "batches payable settlements after the threshold is reached" do
-    first = instance_double(Oja::VendorSettlement, net_amount: 60_000.to_d)
-    second = instance_double(Oja::VendorSettlement, net_amount: 50_000.to_d)
+    first = instance_double(Oja::VendorSettlement, id: 1, net_amount: 60_000.to_d)
+    second = instance_double(Oja::VendorSettlement, id: 2, net_amount: 50_000.to_d)
     scope = class_double(Oja::VendorSettlement)
     allow(scope).to receive(:where).and_return([first, second])
     allow(gateway).to receive(:initiate).and_return(Data.define(:success?, :reference).new(true, "TRX-1"))
@@ -32,7 +32,7 @@ RSpec.describe Oja::Settlement::ConditionalBatch do
   end
 
   it "marks the batch failed when the transfer gateway rejects it" do
-    settlement = instance_double(Oja::VendorSettlement, net_amount: 120_000.to_d)
+    settlement = instance_double(Oja::VendorSettlement, id: 3, net_amount: 120_000.to_d)
     scope = class_double(Oja::VendorSettlement)
     allow(scope).to receive(:where).and_return([settlement])
     allow(gateway).to receive(:initiate).and_return(Data.define(:success?, :reference).new(false, nil))
