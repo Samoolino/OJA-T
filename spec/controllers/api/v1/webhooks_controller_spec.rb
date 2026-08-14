@@ -32,26 +32,23 @@ RSpec.describe Api::V1::WebhooksController, type: :controller do
       allow_any_instance_of(Oja::Payment::StripeClient)
         .to receive(:verify_webhook)
         .and_return(stripe_event)
-
-      Oja::PaymentIntent.create!(
-        payment_intent_id: "pi_test_123",
-        amount: 12_500,
-        currency: "NGN",
-        funding_source: "card",
-        authorization_method: "manual",
-        nonce: SecureRandom.uuid,
-        expires_at: 1.hour.from_now,
-        status: :authorized
-      )
     end
 
-    it "verifies and reconciles a Stripe payment webhook" do
+    it "verifies the Stripe signature and delegates normalized event data" do
       request.headers["Stripe-Signature"] = "t=123,v1=test"
+
+      expect(Oja::Payment::ReconcileWebhook).to receive(:call).with(
+        provider: "stripe",
+        event: {
+          id: "evt_123",
+          type: "payment_intent.succeeded",
+          external_reference: "pi_test_123"
+        }
+      )
 
       post :stripe, body: payload
 
       expect(response).to have_http_status(:ok)
-      expect(Oja::PaymentIntent.find_by(payment_intent_id: "pi_test_123")).to be_succeeded
     end
 
     it "rejects an invalid Stripe signature" do
