@@ -1,5 +1,5 @@
 module Oja
-  module Settlement
+  class Settlement
     class Route
       def self.call(settlement:, profile:, scheduler: Oja::Settlement::Scheduler)
         case profile.settlement_strategy
