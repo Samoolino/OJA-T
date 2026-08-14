@@ -3,6 +3,7 @@ require "rails_helper"
 RSpec.describe Oja::Payment::ReconcileWebhook do
   let(:payment_intent) do
     Oja::PaymentIntent.create!(
+      payment_intent_id: "pi_test_123",
       amount: 12_500,
       currency: "NGN",
       funding_source: "card",
@@ -17,7 +18,7 @@ RSpec.describe Oja::Payment::ReconcileWebhook do
     {
       id: "evt_123",
       type: "payment_intent.succeeded",
-      external_reference: payment_intent.id.to_s
+      external_reference: payment_intent.payment_intent_id
     }
   end
 
