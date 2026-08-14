@@ -1,4 +1,4 @@
-require "rails_helper"
+require "spec_helper"
 
 RSpec.describe Oja::Settlement::ConditionalBatch do
   let(:profile) do
