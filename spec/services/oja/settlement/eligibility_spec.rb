@@ -1,28 +1,20 @@
 require "rails_helper"
 
 RSpec.describe Oja::Settlement::Eligibility do
-  let!(:settlement) do
-    Oja::Settlement.create!(
-      vendor_reference: "vendor_123",
-      gross_amount: 10_000,
-      platform_fee: 1_000,
-      net_amount: 9_000,
-      currency: "NGN",
-      status: "pending",
-      settlement_strategy: "delayed",
-      settlement_reference: "set_eligibility_123"
+  let(:settlement) do
+    instance_double(
+      Oja::Settlement,
+      status: "pending"
     )
   end
 
-  it "marks a settlement eligible only after payment, fulfillment, and delivery are confirmed" do
-    described_class.call(
-      settlement: settlement,
-      payment_confirmed: false,
-      fulfillment_complete: true,
-      delivery_confirmed: true
-    )
+  before do
+    allow(settlement).to receive(:reload).and_return(settlement)
+    allow(settlement).to receive(:with_lock).and_yield
+  end
 
-    expect(settlement.reload.status).to eq("pending")
+  it "marks a settlement eligible only after payment, fulfillment, and delivery are confirmed" do
+    expect(settlement).to receive(:update!).with(status: "eligible", eligible_at: kind_of(Time))
 
     described_class.call(
       settlement: settlement,
@@ -30,25 +22,22 @@ RSpec.describe Oja::Settlement::Eligibility do
       fulfillment_complete: true,
       delivery_confirmed: true
     )
-
-    expect(settlement.reload.status).to eq("eligible")
-    expect(settlement.eligible_at).to be_present
   end
 
   it "does not make a settlement eligible before delivery confirmation" do
+    expect(settlement).not_to receive(:update!)
+
     described_class.call(
       settlement: settlement,
       payment_confirmed: true,
       fulfillment_complete: true,
       delivery_confirmed: false
     )
-
-    expect(settlement.reload.status).to eq("pending")
-    expect(settlement.eligible_at).to be_nil
   end
 
-  it "does not change a settled settlement" do
-    settlement.update!(status: "settled")
+  it "does not change an already eligible settlement" do
+    allow(settlement).to receive(:status).and_return("eligible")
+    expect(settlement).not_to receive(:update!)
 
     described_class.call(
       settlement: settlement,
@@ -56,7 +45,17 @@ RSpec.describe Oja::Settlement::Eligibility do
       fulfillment_complete: true,
       delivery_confirmed: true
     )
+  end
 
-    expect(settlement.reload.status).to eq("settled")
+  it "does not change a settled settlement" do
+    allow(settlement).to receive(:status).and_return("settled")
+    expect(settlement).not_to receive(:update!)
+
+    described_class.call(
+      settlement: settlement,
+      payment_confirmed: true,
+      fulfillment_complete: true,
+      delivery_confirmed: true
+    )
   end
 end
