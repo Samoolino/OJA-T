@@ -1,5 +1,5 @@
 module Oja
-  module Settlement
+  class Settlement
     class TransferGateway
       Result = Data.define(:success?, :reference)
 
