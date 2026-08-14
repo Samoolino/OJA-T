@@ -1,4 +1,4 @@
-require "rails_helper"
+require "spec_helper"
 
 RSpec.describe Oja::Settlement::Route do
   let(:settlement) { instance_double(Oja::VendorSettlement, id: 42) }
