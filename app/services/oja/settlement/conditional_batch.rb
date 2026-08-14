@@ -16,7 +16,7 @@ module Oja
 
         transfer = transfer_gateway.initiate(
           amount: total,
-          currency: settlements.first.currency,
+          currency: profile.currency,
           destination_reference: profile.payout_destination_reference,
           reference: "OJA-BATCH-#{vendor_reference}-#{settlements.first.id}-#{settlements.last.id}"
         )
