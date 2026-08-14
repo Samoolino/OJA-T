@@ -1,5 +1,5 @@
 module Oja
-  module Settlement
+  class Settlement
     class Scheduler
       def self.schedule(settlement_id, delay_seconds, job: Oja::Settlement::InstantSettlementJob)
         if job.respond_to?(:perform_in)
