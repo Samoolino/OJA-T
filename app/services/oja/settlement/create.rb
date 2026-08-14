@@ -6,11 +6,12 @@ module Oja
         settlement = Oja::VendorSettlement.create!(
           order_allocation: order_allocation,
           vendor_reference: vendor_reference,
+          destination_reference: profile.payout_destination_reference,
           gross_amount: gross_amount,
           platform_fee: platform_fee,
           net_amount: gross_amount.to_d - platform_fee,
           currency: currency,
-          status: :pending
+          status: :payable
         )
 
         Oja::Settlement::Route.call(settlement: settlement, profile: profile)
