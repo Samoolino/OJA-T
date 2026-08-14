@@ -1,4 +1,4 @@
-require "spec_helper"
+require "rails_helper"
 
 RSpec.describe Oja::Checkout::Complete do
   it "materializes, consumes, and settles multiple order allocations for an authorized payment intent" do
