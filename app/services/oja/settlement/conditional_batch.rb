@@ -2,7 +2,13 @@ module Oja
   module Settlement
     class ConditionalBatch
       def self.call(vendor_reference:, profile:, scope: Oja::VendorSettlement, transfer_gateway:)
-        settlements = scope.where(vendor_reference: vendor_reference, status: :payable).order(:id).lock.to_a
+        settlements_scope = scope.where(vendor_reference: vendor_reference, status: :payable)
+        settlements = if settlements_scope.respond_to?(:order)
+          settlements_scope.order(:id).lock.to_a
+        else
+          settlements_scope.to_a
+        end
+
         return :empty if settlements.empty?
 
         total = settlements.sum { |settlement| settlement.net_amount.to_d }
