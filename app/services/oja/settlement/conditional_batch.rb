@@ -1,5 +1,5 @@
 module Oja
-  module Settlement
+  class Settlement
     class ConditionalBatch
       def self.call(vendor_reference:, profile:, scope: Oja::VendorSettlement, transfer_gateway:)
         settlements_scope = scope.where(vendor_reference: vendor_reference, status: :payable)
