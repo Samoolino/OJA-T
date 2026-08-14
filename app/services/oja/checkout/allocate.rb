@@ -15,7 +15,7 @@ module Oja
             break if remaining <= 0
             next unless allocation.currency == currency
 
-            available = allocation.available_amount.to_d - allocation.reservations.active.where("expires_at > ?", Time.current).sum(:amount).to_d
+            available = allocation.available_amount.to_d
             next unless available.positive?
 
             amount = [available, remaining].min
