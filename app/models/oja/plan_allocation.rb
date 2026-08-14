@@ -14,9 +14,10 @@ module Oja
     validates :allocation_reference, presence: true, uniqueness: true
 
     def available_amount
-      credited = ledger_entries.where(entry_type: %w[funding allocation_issued refund reversal adjustment]).sum(:amount)
-      debited = ledger_entries.where(entry_type: %w[consumption reservation expiry]).sum(:amount)
-      credited - debited
+      issued = ledger_entries.where(entry_type: %w[funding allocation_issued refund reversal adjustment]).sum(:amount).to_d
+      consumed = ledger_entries.where(entry_type: "consumption").sum(:amount).to_d
+      active_reserved = reservations.active.where("expires_at > ?", Time.current).sum(:amount).to_d
+      issued - consumed - active_reserved
     end
   end
 end
