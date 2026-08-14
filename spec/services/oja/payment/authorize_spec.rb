@@ -1,4 +1,4 @@
-require "spec_helper"
+require "rails_helper"
 
 RSpec.describe Oja::Payment::Authorize do
   let(:payment_intent) do
@@ -25,7 +25,7 @@ RSpec.describe Oja::Payment::Authorize do
     expect(payment_intent).to receive(:with_lock).and_yield
     expect(payment_intent).to receive(:authorized?).and_return(false)
     expect(payment_intent).to receive(:pending?).and_return(true)
-    expect(payment_intent).to receive(:requires_authorization?).and_return(false)
+    expect(payment_intent).not_to receive(:requires_authorization?)
     expect(payment_intent).to receive(:update!).with(status: :authorized, authorized_at: kind_of(Time))
 
     described_class.call(
