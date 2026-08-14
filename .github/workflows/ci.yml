@@ -2,8 +2,12 @@ name: OJA-T CI
 
 on:
   push:
-    branches: [ main, feature/oja-core-actual ]
+    branches:
+      - main
+      - feature/oja-core-actual
+      - feature/oja-payment-production-adapters
   pull_request:
+  workflow_dispatch:
 
 jobs:
   rspec:
@@ -40,5 +44,7 @@ jobs:
           baseline="$(find db/migrate -maxdepth 1 -type f -name '*_spree_four_three.spree.rb' -print -quit)"
           test -n "$baseline"
           mv "$baseline" db/migrate/20260813990000_spree_four_three.spree.rb
-      - run: bundle exec rake db:prepare
-      - run: bundle exec rspec
+      - name: Prepare database
+        run: bundle exec rake db:prepare
+      - name: Run RSpec and Stripe Connect provider specs
+        run: bundle exec rspec
