@@ -1,4 +1,4 @@
-require "spec_helper"
+require "rails_helper"
 
 RSpec.describe "OJA end-to-end transaction lifecycle" do
   it "carries a receiver's multi-plan funding through authorization, order, fulfillment and settlement reconciliation" do
