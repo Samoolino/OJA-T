@@ -35,6 +35,10 @@ jobs:
           ruby-version: '3.3'
           bundler-cache: true
       - name: Install Spree engine migrations
-        run: bundle exec rake spree:install:migrations
+        run: |
+          bundle exec rake spree:install:migrations
+          baseline="$(find db/migrate -maxdepth 1 -type f -name '*_spree_four_three.spree.rb' -print -quit)"
+          test -n "$baseline"
+          mv "$baseline" db/migrate/20260813990000_spree_four_three.spree.rb
       - run: bundle exec rake db:prepare
       - run: bundle exec rspec
