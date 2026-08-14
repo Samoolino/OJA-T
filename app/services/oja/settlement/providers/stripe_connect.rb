@@ -14,11 +14,11 @@ module Oja
         end
 
         def create_payout(settlement:, connected_account_id:)
-          raise NotEligible, "settlement must be eligible" unless settlement.status == "eligible"
+          raise NotEligible, "settlement must be eligible" unless %w[eligible processing].include?(settlement.status)
           raise ArgumentError, "connected_account_id is required" if connected_account_id.to_s.empty?
 
           if settlement.provider_reference.to_s != ""
-            return { id: settlement.provider_reference, status: settlement.status, reused: true }
+            return { id: settlement.provider_reference, status: "processing", reused: true }
           end
 
           configure_stripe!
@@ -43,7 +43,7 @@ module Oja
             provider_reference: transfer.id
           )
 
-          { id: transfer.id, status: settlement.status, reused: false }
+          { id: transfer.id, status: "processing", reused: false }
         rescue NotEligible, TransfersDisabled, ArgumentError
           raise
         rescue ::Stripe::StripeError => e
