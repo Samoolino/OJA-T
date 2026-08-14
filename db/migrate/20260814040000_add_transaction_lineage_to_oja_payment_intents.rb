@@ -1,7 +1,6 @@
 class AddTransactionLineageToOjaPaymentIntents < ActiveRecord::Migration[7.2]
   def change
     change_table :oja_payment_intents, bulk: true do |t|
-      t.bigint :order_id
       t.string :idempotency_key
       t.datetime :authorized_at
       t.datetime :completed_at
