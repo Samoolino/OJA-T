@@ -7,7 +7,6 @@ gem "rails", "~> 7.2"
 spree_source = { github: "spree/spree", tag: "v5.6.0" }
 
 gem "spree", **spree_source
-gem "spree_backend", **spree_source
 gem "spree_api", **spree_source
 gem "spree_core", **spree_source
 
