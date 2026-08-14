@@ -34,5 +34,6 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
+      - run: bundle exec rails railties:install:migrations
       - run: bundle exec rails db:prepare
       - run: bundle exec rspec
