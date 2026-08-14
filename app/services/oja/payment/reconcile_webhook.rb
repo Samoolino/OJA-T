@@ -30,7 +30,7 @@ module Oja
 
         return payment_intent if webhook.persisted? && !webhook.previously_new_record?
 
-        intent = payment_intent || PaymentIntent.find_by!(id: external_reference)
+        intent = payment_intent || PaymentIntent.find_by!(payment_intent_id: external_reference)
         next_status = PAYMENT_STATES[type]
         return intent unless next_status
 
