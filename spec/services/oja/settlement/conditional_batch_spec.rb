@@ -18,15 +18,15 @@ RSpec.describe Oja::Settlement::ConditionalBatch do
     expect(described_class.call(vendor_reference: "vendor-1", profile: profile, scope: scope, transfer_gateway: gateway)).to eq(:below_threshold)
   end
 
-  it "batches pending settlements after the threshold is reached" do
+  it "batches payable settlements after the threshold is reached" do
     first = instance_double(Oja::VendorSettlement, net_amount: 60_000.to_d)
     second = instance_double(Oja::VendorSettlement, net_amount: 50_000.to_d)
     scope = class_double(Oja::VendorSettlement)
     allow(scope).to receive(:where).and_return([first, second])
     allow(gateway).to receive(:initiate).and_return(Data.define(:success?, :reference).new(true, "TRX-1"))
 
-    expect(first).to receive(:update!).with(status: :authorized, external_settlement_reference: "TRX-1")
-    expect(second).to receive(:update!).with(status: :authorized, external_settlement_reference: "TRX-1")
+    expect(first).to receive(:update!).with(status: :authorized, payout_reference: "TRX-1")
+    expect(second).to receive(:update!).with(status: :authorized, payout_reference: "TRX-1")
 
     expect(described_class.call(vendor_reference: "vendor-1", profile: profile, scope: scope, transfer_gateway: gateway)).to eq(:authorized)
   end
