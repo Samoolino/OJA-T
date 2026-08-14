@@ -10,7 +10,7 @@ RSpec.describe Oja::Fulfillment::Create do
 
     allow(ApplicationRecord).to receive(:transaction).and_yield
     allow(Oja::OrderAllocation).to receive(:where).with(order_id: 101).and_return(allocations)
-    allow(allocations).to receive(:each).and_yield(order_allocation)
+    allow(allocations).to receive(:each_with_index).and_yield(order_allocation, 0)
     allow(Oja::VendorFulfillmentProfile).to receive(:find_by).with(vendor_reference: "vendor-1").and_return(profile)
     allow(Oja::OrderFulfillment).to receive(:create_or_find_by!).with(
       order_id: 101,
@@ -35,7 +35,7 @@ RSpec.describe Oja::Fulfillment::Create do
 
     allow(ApplicationRecord).to receive(:transaction).and_yield
     allow(Oja::OrderAllocation).to receive(:where).with(order_id: 101).and_return(allocations)
-    allow(allocations).to receive(:each).and_yield(order_allocation)
+    allow(allocations).to receive(:each_with_index).and_yield(order_allocation, 0)
     allow(Oja::VendorFulfillmentProfile).to receive(:find_by).with(vendor_reference: "vendor-1").and_return(profile)
 
     expect {
