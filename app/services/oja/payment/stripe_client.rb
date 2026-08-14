@@ -12,8 +12,7 @@ module Oja
             currency: currency,
             metadata: metadata
           },
-          { idempotency_key: idempotency_key },
-          api_key: @secret_key || ENV.fetch("STRIPE_SECRET_KEY")
+          { idempotency_key: idempotency_key }
         )
 
         {
