@@ -34,5 +34,7 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
+      - name: Install Spree engine migrations
+        run: bundle exec rake spree:install:migrations
       - run: bundle exec rake db:prepare
       - run: bundle exec rspec
