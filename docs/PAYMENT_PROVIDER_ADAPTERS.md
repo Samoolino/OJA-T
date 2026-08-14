@@ -24,6 +24,10 @@ PaymentIntent
     v
 Payment Provider Adapter
     |
+    +-- Stripe
+    +-- Nigerian bank/payment provider adapters
+    +-- other external rails
+    |
     v
 Provider webhook
     |
@@ -75,6 +79,12 @@ adapter.authorize_or_charge(
 
 The adapter must never mark an OJA settlement as `settled`. Provider acceptance only establishes that the provider accepted the payment/payout request. Final state is closed through authenticated provider webhook reconciliation.
 
+## Stripe adapter
+
+Stripe is the first concrete adapter behind the provider-neutral interface. The adapter passes the OJA PaymentIntent identifier and idempotency key as provider metadata/request idempotency data and delegates webhook signature verification to the injected provider client.
+
+The adapter boundary deliberately does not hard-code Stripe SDK objects into OJA domain models. A thin injected client keeps provider SDK/version changes isolated and allows deterministic tests without network calls.
+
 ## Idempotency
 
 Every provider request must carry the OJA PaymentIntent idempotency key. A provider reference must be persisted and uniquely associated with the corresponding PaymentIntent/settlement operation.
@@ -102,9 +112,9 @@ The server verifies a transaction-bound challenge/signature. The credential refe
 
 ## Implementation order
 
-1. Provider-neutral adapter interface and result object.
+1. Provider-neutral adapter interface and result object. **Done.**
 2. Provider configuration and secret boundary.
-3. Card adapter.
+3. Stripe payment adapter. **Started.**
 4. Bank-transfer adapter.
 5. External payment adapter.
 6. PaymentIntent execution orchestration.
