@@ -1,4 +1,4 @@
-require "spec_helper"
+require "rails_helper"
 
 RSpec.describe Oja::PlanAllocation do
   it "does not double count an active reservation recorded in the ledger" do
