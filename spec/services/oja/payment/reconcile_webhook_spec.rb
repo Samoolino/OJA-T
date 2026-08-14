@@ -1,7 +1,17 @@
 require "rails_helper"
 
 RSpec.describe Oja::Payment::ReconcileWebhook do
-  let(:payment_intent) { create(:oja_payment_intent, status: :authorized) }
+  let(:payment_intent) do
+    Oja::PaymentIntent.create!(
+      amount: 12_500,
+      currency: "NGN",
+      funding_source: "card",
+      authorization_method: "manual",
+      nonce: SecureRandom.uuid,
+      expires_at: 1.hour.from_now,
+      status: :authorized
+    )
+  end
 
   let(:event) do
     {
