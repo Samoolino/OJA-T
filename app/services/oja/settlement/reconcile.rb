@@ -9,7 +9,7 @@ module Oja
 
         case event_type
         when *SUCCESS_EVENTS
-          return settlement if settlement.settled?
+          return settlement if settlement.paid?
           settlement.update!(status: :paid, settled_at: settled_at)
         when *FAILURE_EVENTS
           return settlement if settlement.failed?
