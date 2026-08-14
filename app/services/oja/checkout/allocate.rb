@@ -1,7 +1,7 @@
 module Oja
   module Checkout
     class Allocate
-      AllocationPart = Data.define(:allocation, :amount)
+      AllocationPart = Data.define(:allocation, :amount, :reservation)
 
       def self.call(receiver:, total:, currency:, idempotency_key:, order_id: nil, expires_at: 15.minutes.from_now)
         raise ArgumentError, "total must be positive" unless total.to_d.positive?
@@ -27,7 +27,7 @@ module Oja
               expires_at: expires_at,
               order_id: order_id
             )
-            reservations << AllocationPart.new(allocation, amount)
+            reservations << AllocationPart.new(allocation, amount, reservation)
             remaining -= amount
           end
 
