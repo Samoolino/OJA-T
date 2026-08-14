@@ -1,5 +1,5 @@
 module Oja
-  module Settlement
+  class Settlement
     class Build
       def self.call(order:, vendor_reference:, gross_amount:, platform_fee:, currency:, settlement_reference:, strategy: "delayed", eligible_at: nil)
         new(
