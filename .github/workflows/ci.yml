@@ -38,6 +38,8 @@ jobs:
         with:
           ruby-version: '3.3'
           bundler-cache: true
+      - name: Validate Bundler dependency graph
+        run: bundle check
       - name: Install Spree engine migrations
         run: |
           bundle exec rake spree:install:migrations
@@ -46,5 +48,7 @@ jobs:
           mv "$baseline" db/migrate/20260813990000_spree_four_three.spree.rb
       - name: Prepare database
         run: bundle exec rake db:prepare
-      - name: Run RSpec and Stripe Connect provider specs
+      - name: Run RSpec
         run: bundle exec rspec
+      - name: Run Stripe Connect provider specs
+        run: bundle exec rspec spec/services/oja/settlement/providers/base_spec.rb spec/services/oja/settlement/providers/stripe_connect_spec.rb
