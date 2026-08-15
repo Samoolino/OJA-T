@@ -1,0 +1,58 @@
+name: OJA-T Payment PR Head Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Feature branch or commit SHA to verify'
+        required: true
+        default: 'feature/oja-payment-production-adapters'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oja_test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: oja_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d oja_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout requested PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Verify Bundler dependency graph
+        run: bundle check
+
+      - name: Run Spree engine migrations
+        run: bundle exec rails spree:install:migrations
+
+      - name: Prepare database
+        run: bundle exec rails db:prepare
+
+      - name: Run full RSpec suite
+        run: bundle exec rspec
+
+      - name: Run Stripe Connect provider specs
+        run: >-
+          bundle exec rspec
+          spec/services/oja/settlement/providers/base_spec.rb
+          spec/services/oja/settlement/providers/stripe_connect_spec.rb
