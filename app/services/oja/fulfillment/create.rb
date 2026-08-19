@@ -1,17 +1,24 @@
 module Oja
   module Fulfillment
     class Create
-      def self.call(order:, vendor_reference:, mode:, idempotency_key:, tracking_reference: nil)
-        raise ArgumentError, "order is required" unless order
-        raise ArgumentError, "vendor_reference is required" if vendor_reference.blank?
-        raise ArgumentError, "invalid fulfillment mode" unless Oja::OrderFulfillment::MODES.include?(mode.to_s)
+      SUPPORTED_MODES = Oja::VendorFulfillmentProfile::FULFILLMENT_MODES.freeze
 
-        Oja::OrderFulfillment.find_or_create_by!(idempotency_key: idempotency_key) do |fulfillment|
-          fulfillment.order_id = order.id
-          fulfillment.vendor_reference = vendor_reference
-          fulfillment.fulfillment_mode = mode.to_s
-          fulfillment.status = "pending"
-          fulfillment.tracking_reference = tracking_reference
+      def self.call(order:, idempotency_key:)
+        ApplicationRecord.transaction do
+          Oja::OrderAllocation.where(order_id: order.id).each_with_index do |order_allocation, index|
+            profile = Oja::VendorFulfillmentProfile.find_by(vendor_reference: order_allocation.vendor_reference)
+            mode = profile&.fulfillment_mode || "courier"
+            raise ArgumentError, "invalid fulfillment mode" unless SUPPORTED_MODES.include?(mode)
+
+            Oja::OrderFulfillment.create_or_find_by!(
+              order_id: order.id,
+              vendor_reference: order_allocation.vendor_reference
+            ) do |fulfillment|
+              fulfillment.fulfillment_mode = mode
+              fulfillment.status = mode == "digital" ? "processing" : "pending"
+              fulfillment.idempotency_key = "#{idempotency_key}:fulfillment:#{index}"
+            end
+          end
         end
       end
     end
