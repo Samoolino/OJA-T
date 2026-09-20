@@ -6,24 +6,42 @@ on:
   pull_request:
 
 jobs:
-  ruby-syntax:
+  integrity:
     runs-on: ubuntu-latest
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oja_test
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: oja_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d oja_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
+          bundler-cache: true
+      - name: Verify dependency graph
+        run: bundle check
       - name: Check Ruby syntax
         shell: bash
         run: |
           set -euo pipefail
-          files="$(find app -type f -name '*.rb' -print)"
-          if [ -n "$files" ]; then
-            while IFS= read -r file; do
-              ruby -c "$file"
-            done <<< "$files"
-          fi
-      - name: Run institutional control tests\n        run: ruby -Itest test/institutional_controls_test.rb\n      - name: Check required institutional contracts
+          find app config db test -type f -name '*.rb' -print0 | xargs -0 -n1 ruby -c
+      - name: Prepare database
+        run: bundle exec rails db:prepare
+      - name: Run institutional tests
+        run: bundle exec rails test test/institutional_controls_test.rb
+      - name: Verify required contracts
         shell: bash
         run: |
           set -euo pipefail
