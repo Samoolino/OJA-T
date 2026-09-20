@@ -14,9 +14,8 @@ module Oja
           raise ArgumentError, "mixed currency in split" unless currencies.one?
           amount = group.sum { |i| Integer(i[:amount_minor] || i["amount_minor"]) }
           raise ArgumentError, "split amount must be positive" unless amount.positive?
-          Oja::OrderSplit.find_or_create_by!(order_reference:, vendor_id: vendor_id.to_i) do |split|
+          Oja::OrderSplit.find_or_create_by!(order_reference:, vendor_id: vendor_id.to_i, vendor_store_id: store_id.to_i) do |split|
             split.cart_reference = cart_reference
-            split.vendor_store_id = store_id.to_i
             split.currency = currencies.first
             split.amount_minor = amount
             split.correlation_id = correlation_id
