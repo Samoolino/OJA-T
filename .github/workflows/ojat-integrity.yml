@@ -6,11 +6,8 @@ on:
   pull_request:
 
 jobs:
-  integrity:
+  verify:
     runs-on: ubuntu-latest
-    env:
-      RAILS_ENV: test
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oja_test
     services:
       postgres:
         image: postgres:16
@@ -24,14 +21,17 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/oja_test
     steps:
       - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
           bundler-cache: true
-      - name: Verify dependency graph
-        run: bundle check
+      - name: Install dependencies
+        run: bundle install --jobs 4 --retry 3
       - name: Check Ruby syntax
         shell: bash
         run: |
@@ -39,12 +39,10 @@ jobs:
           find app config db test -type f -name '*.rb' -print0 | xargs -0 -n1 ruby -c
       - name: Prepare database
         run: bundle exec rails db:prepare
-      - name: Run institutional tests
-        run: bundle exec rails test test/institutional_controls_test.rb
-      - name: Verify required contracts
-        shell: bash
+      - name: Run tests
+        run: bundle exec rails test
+      - name: Check required institutional contracts
         run: |
-          set -euo pipefail
           test -f docs/INSTITUTIONAL_EXECUTION_CONTRACT.md
           test -f docs/FINANCIAL_INTEGRITY.md
           test -f docs/GEOGRAPHY_AND_LOCATION_POLICY.md
