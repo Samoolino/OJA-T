@@ -50,3 +50,31 @@ See:
 - docs/ARCHITECTURE.md
 - docs/DATA_MODEL.md
 - docs/IMPLEMENTATION_PLAN.md
+
+
+## Dual-repository implementation status
+
+OJA-T and OJa-WA are **competitive/parallel implementations of the same OJa-WA functionality**. OJA-T is not merely an execution backend for OJa-WA, and OJa-WA is not merely a product shell for OJA-T. They are evaluated against the same functional and production-gate contract.
+
+The authoritative parity contract is `docs/DUAL_REPO_PARITY_CONTRACT.md`.
+
+### Re-engaged implementation stage — 2026-09-20
+
+Current checked-in OJA-T capability includes:
+
+- persistent plan/allocation financial records
+- verified funding ingress and immutable funding evidence
+- append-only allocation ledger
+- idempotent reservation, consumption, release and reversal boundaries
+- beneficiary and policy-aware authorization
+- geography authorization/evidence
+- payment evidence ingestion with replay/fingerprint protection
+- exact basket and vendor/store order splitting
+- fulfillment state transition boundary
+- gated settlement transfer boundary
+- reconciliation and settlement-blocking controls
+- Rails runtime/test harness and CI workflow definitions
+
+The next implementation cycle resumes from this state. It does **not** reset to the original skeleton.
+
+Before a production gate can advance, current-head CI and integration evidence must be observed and recorded. Source-code presence alone is not production certification.
