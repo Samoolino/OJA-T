@@ -27,14 +27,19 @@ module Oja
           return Result.new(event: existing, replayed: true)
         end
 
+        observed_amount_minor = extract_amount_minor(@attrs[:payload])
+        observed_currency = extract_currency(@attrs[:payload])
+        raise ArgumentError, "payment evidence amount is missing or invalid" unless observed_amount_minor&.positive?
+        raise ArgumentError, "payment evidence currency is missing" if observed_currency.blank?
+
         event = Oja::PaymentEvidenceEvent.create!(
           provider:,
           provider_event_id: event_id,
           event_type: @attrs[:event_type].to_s,
           payment_reference: @attrs[:payment_reference],
           order_reference: @attrs[:order_reference],
-          currency: @attrs[:currency].to_s.upcase.presence,
-          amount_minor: @attrs[:amount_minor],
+          currency: observed_currency,
+          amount_minor: observed_amount_minor,
           correlation_id: @attrs[:correlation_id],
           payload_fingerprint: fingerprint,
           payload: @attrs[:payload] || {},
@@ -46,6 +51,19 @@ module Oja
       end
 
       private
+
+      def extract_amount_minor(payload)
+        value = payload["amount_minor"] || payload[:amount_minor] ||
+                payload["amount"] || payload[:amount]
+        Integer(value)
+      rescue ArgumentError, TypeError
+        nil
+      end
+
+      def extract_currency(payload)
+        value = payload["currency"] || payload[:currency]
+        value.to_s.upcase.presence
+      end
 
       def canonical(value)
         case value
