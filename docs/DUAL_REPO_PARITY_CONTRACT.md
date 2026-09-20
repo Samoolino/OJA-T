@@ -101,3 +101,38 @@ The active engineering loop is:
 `re-baseline -> parity gap -> implement -> test -> CI -> evidence -> advance gate`
 
 No live payment movement, custody, KYC/AML processing, or production settlement is inferred merely from source-code presence.
+
+## Cross-repository acceptance matrix
+
+| Scenario | OJa-WA | OJA-T | Required outcome |
+|---|---|---|---|
+| Verified funding | implemented | implemented | one ledger funding effect |
+| Funding replay | implemented | implemented | same idempotency key cannot double-fund |
+| Reservation overage | implemented | implemented | rejected; available remains non-negative |
+| Exact basket mismatch | implemented | implemented | rejected before capture |
+| Provider amount mismatch | implemented | implemented | reconciliation exception; no consumption |
+| Provider currency mismatch | implemented | implemented | reconciliation exception; no consumption |
+| Same provider event replay | implemented | implemented | one evidence row/effect |
+| Same provider event changed payload | implemented | implemented | rejected as evidence mismatch |
+| Consumption | implemented | implemented | cannot exceed reserved |
+| Reservation release | implemented | implemented | bounded release only |
+| Consumption reversal/refund | implemented | implemented | bounded reversal only |
+| Fulfillment gating | implemented | implemented | settlement waits for required confirmation |
+| Settlement eligibility | implemented | implemented | mismatch/exception blocks transfer |
+| Transfer replay | implemented | implemented | idempotent provider transfer request |
+| Historical ledger mutation | guarded by model | guarded by model | append-only behavior |
+
+### Test evidence rule
+
+A row is not considered certified merely because the source files exist. Acceptance requires a passing repository test and a recorded CI run for the corresponding head. Until then the row is **implemented / verification pending**.
+
+### Active hardening
+
+Current hardening specifically covers provider-webhook replay semantics:
+
+1. Provider event identity is unique at the database boundary.
+2. Payload fingerprints are canonicalized so JSON key ordering does not create false mismatches.
+3. A concurrent insert collision resolves to the already-persisted event and replays it.
+4. A changed payload for the same provider event is rejected.
+5. Downstream capture remains idempotent, so replay cannot create a second consumption.
+
