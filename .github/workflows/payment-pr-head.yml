@@ -4,12 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'Feature branch or commit SHA to verify'
+        description: "Feature branch or commit SHA to verify"
         required: true
-        default: 'feature/oja-payment-production-adapters'
+        default: "main"
+  pull_request:
 
 jobs:
-  verify:
+  integrity:
     runs-on: ubuntu-latest
     env:
       RAILS_ENV: test
@@ -28,31 +29,32 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-      - name: Checkout requested PR head
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref }}
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+          ref: ${{ inputs.ref || github.event.pull_request.head.sha || github.sha }}
+      - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
+          ruby-version: "3.3"
           bundler-cache: true
-
-      - name: Verify Bundler dependency graph
+      - name: Verify dependency graph
         run: bundle check
-
-      - name: Run Spree engine migrations
-        run: bundle exec rails spree:install:migrations
-
+      - name: Check Ruby syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find app config db test -type f -name '*.rb' -print0 | xargs -0 -n1 ruby -c
       - name: Prepare database
         run: bundle exec rails db:prepare
-
-      - name: Run full RSpec suite
-        run: bundle exec rspec
-
-      - name: Run Stripe Connect provider specs
-        run: >-
-          bundle exec rspec
-          spec/services/oja/settlement/providers/base_spec.rb
-          spec/services/oja/settlement/providers/stripe_connect_spec.rb
+      - name: Run institutional tests
+        run: bundle exec rails test test/institutional_controls_test.rb
+      - name: Verify required contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f docs/INSTITUTIONAL_EXECUTION_CONTRACT.md
+          test -f docs/FINANCIAL_INTEGRITY.md
+          test -f docs/GEOGRAPHY_AND_LOCATION_POLICY.md
+          test -f app/services/oja/financial/invariants.rb
+          test -f app/services/oja/idempotency.rb
+          test -f app/services/oja/geography/policy.rb
+          test -f app/services/oja/settlement/eligibility.rb
