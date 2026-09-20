@@ -58,3 +58,6 @@ jobs:
           test -f test/transaction_path_test.rb
           test -f test/payment_capture_test.rb
           test -f test/capture_order_split_test.rb
+          test -f app/services/oja/settlement/request_transfer.rb
+          test -f app/services/oja/payment/refund_allocation.rb
+          test -f test/settlement_and_refund_test.rb
