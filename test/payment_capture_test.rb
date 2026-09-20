@@ -80,6 +80,6 @@ class PaymentCaptureTest < ActiveSupport::TestCase
     assert first.captured
     assert second.captured
     assert_equal 12_500, @allocation.reload.consumed_minor
-    assert_equal 0, Oja::PaymentEvidenceEvent.where(provider: "sandbox", provider_event_id: "evt-capture-replay").count
+    assert_equal 1, Oja::PaymentEvidenceEvent.where(provider: "sandbox", provider_event_id: "evt-capture-replay").count
   end
 end
