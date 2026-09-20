@@ -23,7 +23,7 @@ jobs:
               ruby -c "$file"
             done <<< "$files"
           fi
-      - name: Check required institutional contracts
+      - name: Run institutional control tests\n        run: ruby -Itest test/institutional_controls_test.rb\n      - name: Check required institutional contracts
         shell: bash
         run: |
           set -euo pipefail
