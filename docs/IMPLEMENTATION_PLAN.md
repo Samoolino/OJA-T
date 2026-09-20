@@ -196,3 +196,26 @@ Before real payment processing, add:
 - financial reporting exports
 
 Actual custody, stored-value, payment-provider, KYC/AML, and regulatory requirements must be handled according to the jurisdictions and payment rails used by the deployment.
+
+
+## Phase 9 — Dual-repository parity re-entry (2026-09-20)
+
+OJa-WA and OJA-T are treated as competing implementations of the same functional target. The implementation stage is therefore re-engaged from the **actual checked-in state**, not from the historical scaffold description.
+
+### Current OJA-T baseline
+
+The current baseline includes persistent financial records, verified funding ingress, append-only ledgering, idempotent allocation reservation/ledger operations, geography/policy authorization, payment evidence ingestion, exact basket/order splitting, fulfillment transitions, settlement eligibility/transfer gating, reconciliation, and a Rails CI/test harness.
+
+### Immediate execution sequence
+
+1. Execute database migration/runtime validation on the current head.
+2. Add integration orchestration for exact basket -> authorization -> reservation -> payment evidence -> consume/release.
+3. Tie payment lifecycle evidence to order-split state transitions.
+4. Drive settlement eligibility from reconciliation and fulfillment state rather than direct status mutation.
+5. Complete provider adapter contracts using test/sandbox boundaries only.
+6. Add parity acceptance tests that can be run against both repositories.
+7. Record CI evidence before advancing G2/G3/G4 gates.
+
+### Parity rule
+
+A capability completed in OJA-T is a parity requirement for OJa-WA, and vice versa. Internal implementation may differ, but externally observable behavior, financial invariants, authorization rules, failure paths, and audit expectations must converge.
