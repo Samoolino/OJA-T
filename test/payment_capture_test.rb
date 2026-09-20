@@ -46,3 +46,20 @@ class PaymentCaptureTest < ActiveSupport::TestCase
     assert_equal 0, @allocation.consumed_minor
   end
 end
+
+
+  test "capture blocks currency mismatch" do
+    result = Oja::Payment::CaptureAllocation.call(
+      allocation: @allocation, beneficiary_id: "beneficiary-1", amount_minor: 12_500, currency: "NGN",
+      provider: "sandbox", provider_event_id: "evt-capture-3", payment_reference: "pay-capture-3",
+      order_reference: "order-capture-3", correlation_id: "corr-capture-3",
+      idempotency_key: "consume:capture-3", payload: { "amount_minor" => 12_500, "currency" => "USD" },
+      context: { "country_code" => "NG" }
+    )
+
+    refute result.captured
+    assert_equal "reconciliation_exception", result.reason
+    assert_equal 12_500, @allocation.reload.reserved_minor
+    assert_equal 0, @allocation.consumed_minor
+  end
+end
