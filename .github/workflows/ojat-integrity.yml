@@ -1,0 +1,36 @@
+name: OJA-T Integrity
+
+on:
+  push:
+    branches: ["main", "feature/**", "institutional/**"]
+  pull_request:
+
+jobs:
+  ruby-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - name: Check Ruby syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          files="$(find app -type f -name '*.rb' -print)"
+          if [ -n "$files" ]; then
+            while IFS= read -r file; do
+              ruby -c "$file"
+            done <<< "$files"
+          fi
+      - name: Check required institutional contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f docs/INSTITUTIONAL_EXECUTION_CONTRACT.md
+          test -f docs/FINANCIAL_INTEGRITY.md
+          test -f docs/GEOGRAPHY_AND_LOCATION_POLICY.md
+          test -f app/services/oja/financial/invariants.rb
+          test -f app/services/oja/idempotency.rb
+          test -f app/services/oja/geography/policy.rb
+          test -f app/services/oja/settlement/eligibility.rb
