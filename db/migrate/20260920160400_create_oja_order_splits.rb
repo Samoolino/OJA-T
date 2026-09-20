@@ -16,9 +16,9 @@ class CreateOjaOrderSplits < ActiveRecord::Migration[7.0]
       t.jsonb :metadata, null: false, default: {}
       t.timestamps
     end
-    add_index :oja_order_splits, [:order_reference, :vendor_id], unique: true
+    add_index :oja_order_splits, [:order_reference, :vendor_id, :vendor_store_id], unique: true, name: "idx_oja_order_splits_order_vendor_store"
     add_index :oja_order_splits, :cart_reference
     add_index :oja_order_splits, :payment_reference
-    add_check_constraint :oja_order_splits, "amount_minor >= 0", name: "oja_order_splits_amount_nonnegative"
+    add_check_constraint :oja_order_splits, "amount_minor >= 0 AND vendor_id > 0 AND vendor_store_id > 0", name: "oja_order_splits_amount_and_identity_positive"
   end
 end
