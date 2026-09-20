@@ -45,8 +45,6 @@ class PaymentCaptureTest < ActiveSupport::TestCase
     assert_equal 12_500, @allocation.reload.reserved_minor
     assert_equal 0, @allocation.consumed_minor
   end
-end
-
 
   test "capture blocks currency mismatch" do
     result = Oja::Payment::CaptureAllocation.call(
@@ -61,5 +59,27 @@ end
     assert_equal "reconciliation_exception", result.reason
     assert_equal 12_500, @allocation.reload.reserved_minor
     assert_equal 0, @allocation.consumed_minor
+  end
+
+  test "same provider event and payload is idempotent" do
+    first = Oja::Payment::CaptureAllocation.call(
+      allocation: @allocation, beneficiary_id: "beneficiary-1", amount_minor: 12_500, currency: "NGN",
+      provider: "sandbox", provider_event_id: "evt-capture-replay", payment_reference: "pay-replay-1",
+      order_reference: "order-replay-1", correlation_id: "corr-replay-1",
+      idempotency_key: "consume:replay-1", payload: { "amount_minor" => 12_500, "currency" => "NGN" },
+      context: { "country_code" => "NG" }
+    )
+    second = Oja::Payment::CaptureAllocation.call(
+      allocation: @allocation, beneficiary_id: "beneficiary-1", amount_minor: 12_500, currency: "NGN",
+      provider: "sandbox", provider_event_id: "evt-capture-replay", payment_reference: "pay-replay-2",
+      order_reference: "order-replay-2", correlation_id: "corr-replay-2",
+      idempotency_key: "consume:replay-2", payload: { "currency" => "NGN", "amount_minor" => 12_500 },
+      context: { "country_code" => "NG" }
+    )
+
+    assert first.captured
+    assert second.captured
+    assert_equal 12_500, @allocation.reload.consumed_minor
+    assert_equal 0, Oja::PaymentEvidenceEvent.where(provider: "sandbox", provider_event_id: "evt-capture-replay").count
   end
 end
