@@ -1,19 +1,13 @@
 module Oja
-  class PlanAllocation
-    include ActiveModel::Model
-    include ActiveModel::Attributes
-    attribute :id, :integer
-    attribute :plan_id, :integer
-    attribute :beneficiary_id, :string
-    attribute :currency, :string
-    attribute :funded_minor, :integer, default: 0
-    attribute :reserved_minor, :integer, default: 0
-    attribute :consumed_minor, :integer, default: 0
-    attribute :released_minor, :integer, default: 0
-    attribute :reversed_minor, :integer, default: 0
-    attribute :active, :boolean, default: true
-    attribute :expires_at, :datetime
-    attribute :geo_policy, :value
+  class PlanAllocation < ActiveRecord::Base
+    self.table_name = "oja_plan_allocations"
+
+    belongs_to :plan, class_name: "Oja::Plan", inverse_of: :allocations
+    has_many :ledger_entries, class_name: "Oja::FinancialLedgerEntry", foreign_key: :allocation_id, inverse_of: :allocation
+
+    validates :beneficiary_id, :currency, presence: true
+    validates :funded_minor, :reserved_minor, :consumed_minor, :released_minor, :reversed_minor,
+              numericality: { greater_than_or_equal_to: 0 }
 
     def available_minor
       Oja::Financial::Invariants.available(
