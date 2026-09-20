@@ -52,3 +52,7 @@ jobs:
           test -f app/services/oja/geography/policy.rb
           test -f app/services/oja/allocation/authorization.rb
           test -f app/services/oja/settlement/eligibility.rb
+          test -f app/services/oja/checkout/authorize_and_reserve.rb
+          test -f app/services/oja/payment/capture_allocation.rb
+          test -f test/transaction_path_test.rb
+          test -f test/payment_capture_test.rb
