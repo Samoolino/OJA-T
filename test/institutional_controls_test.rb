@@ -24,7 +24,7 @@ class InstitutionalControlsTest < ActiveSupport::TestCase
   test "geography policy matches normalized context" do
     policy = { "country_code" => "NG", "admin_area_1_code" => "LA" }
     context = { "country_code" => "NG", "admin_area_1_code" => "LA" }
-    result = Oja::Geography::Policy.call(policy:, context:)
+    result = Oja::Geography::Policy.evaluate(policy:, context:)
     assert result[:allowed]
   end
 
