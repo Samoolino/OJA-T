@@ -4,6 +4,7 @@ on:
   push:
     branches: ["main", "feature/**", "institutional/**"]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   verify:
@@ -31,7 +32,9 @@ jobs:
           ruby-version: "3.3"
           bundler-cache: true
       - name: Install dependencies
-        run: bundle install --jobs 4 --retry 3
+        run: |
+          bundle install --jobs 4 --retry 3
+          bundle check
       - name: Check Ruby syntax
         shell: bash
         run: |
